@@ -1,0 +1,108 @@
+package Turno;
+
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+import Negocio.Cliente.SAClienteImp;
+import Negocio.FactoriaEntityManager.FactoriaEntityManager;
+import Negocio.Turno.SATurnoImp;
+import Negocio.Turno.TTurno;
+import Negocio.Turno.Turno;
+
+import org.junit.Test;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class TestSATurno {
+	public static SATurnoImp saTurno;
+	public static SAClienteImp saCliente;
+	public static Integer idTurno, idCliente;
+	Integer err = -1;
+	
+	@BeforeClass
+	public static void Beforeclass() {
+		saTurno = new SATurnoImp();
+		saCliente = new SAClienteImp();
+	}
+	
+	@Test
+	public void aCrearTurnoCorrecto() {
+		Date today = new Date();
+		TTurno tturno = new TTurno(today, (float) 20.5, true, 10);
+		idTurno = saTurno.crearTurno(tturno);
+		assertNotEquals(err, idTurno);
+	}
+	
+	@Test
+	public void bCrearTurnoIncorrecto() {
+		TTurno tturno = new TTurno();
+		Integer id = saTurno.crearTurno(tturno);
+		assertEquals(err, id);
+	}
+
+	@Test
+	public void cBuscarTurnoCorrecto() {
+		TTurno tturno = saTurno.buscarTurno(idTurno);
+		assertNotNull(tturno);
+		assertEquals(tturno.getId(), idTurno);
+	}
+	
+	@Test
+	public void dBuscarTurnoIncorrecto() {
+		assertNull(saTurno.buscarTurno(-1));
+	}
+	
+	@Test
+	public void eEditarTurnoCorrecto() {
+	    TTurno tturno = saTurno.buscarTurno(idTurno);
+	    tturno.setCapacidad(30);
+	    assertEquals(idTurno, saTurno.editarTurno(tturno));
+	}
+	
+	@Test
+	public void fModificarTurnoIncorrecto() {
+		TTurno turno = saTurno.buscarTurno(4);
+	    turno.setCapacidad(19);
+	    assertEquals(err, saTurno.editarTurno(turno));
+	}
+	
+	@Test
+	public void gBuscarTodosTurnos() {
+	    List<TTurno> turno = saTurno.buscarTodosTurno();
+	    assertTrue(turno.size() > 0);
+	}
+	
+	@Test
+	public void hEliminarTurnoCorrecto() {
+		Integer t = saTurno.eliminarTurno(idTurno);
+		assertEquals(idTurno, t);
+	}
+	
+	@Test
+	public void iEliminarTurnoIncorrecto() {
+		Integer t = saTurno.eliminarTurno(-10);
+		assertEquals(err, t);
+	}
+	
+	@org.junit.AfterClass
+	public static void AfterClass() {
+		EntityManager em = FactoriaEntityManager.getInstance().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		
+		Turno turn = em.find(Turno.class, idTurno);
+		
+		em.remove(turn);
+		et.commit();
+		em.close();
+	}
+	
+}

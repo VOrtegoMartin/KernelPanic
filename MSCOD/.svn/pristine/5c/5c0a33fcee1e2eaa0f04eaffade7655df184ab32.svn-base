@@ -1,0 +1,93 @@
+package Presentacion.Reserva;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import Negocio.Reserva.TReservaCompleta;
+import Presentacion.Controller.Controller;
+import Presentacion.Controller.Events;
+import Presentacion.Controller.IGUI;
+
+public class VMostrarReserva_OK extends JFrame implements IGUI {
+	JPanel main;
+	private ArrayList<Integer> habitaciones;
+	private ArrayList<Integer> servicios;
+	
+	public VMostrarReserva_OK(){
+		main = new JPanel();
+		this.setContentPane(main);
+	}
+	@Override
+	public void update(Object data) {
+		TReservaCompleta reserva = (TReservaCompleta)data;
+		String[] columnNames = {"ID", "Codigo", "NumDias", "ID Cliente", "ID Recepcionista", "NumHabitaciones", "FechaIni", "Activo", "ID Recepcionista", "Habitaciones", "Servicios"};
+		JTable table = new JTable();
+		
+		table.setModel(new DefaultTableModel() {
+			public boolean isCellEditable(int row, int col) {
+				return false;
+			}
+
+			public String getColumnName(int index) {
+				return columnNames[index];
+			}
+
+			public int getColumnCount() {
+				return 11;
+			}
+
+			public int getRowCount() {
+				return 1;
+			}
+		});
+		
+		table.setValueAt(reserva.getReserva().getId(), 0, 0);
+		table.setValueAt(reserva.getReserva().getCodigo(), 0, 1);
+		table.setValueAt(reserva.getReserva().getNumDias(), 0, 2);
+		table.setValueAt(reserva.getReserva().getId_Cliente(), 0, 3);
+		table.setValueAt(reserva.getReserva().getId_Recepcionista(), 0, 4);
+		table.setValueAt(reserva.getReserva().getNum_Habitaciones(), 0, 5);
+		table.setValueAt(reserva.getReserva().getFechaInicio(), 0, 6);
+		table.setValueAt(reserva.getReserva().getActivo() ? "SI" : "NO", 0, 7);
+		table.setValueAt(reserva.getIdRecepcionista(), 0, 8);
+		
+		habitaciones = new ArrayList<Integer>(reserva.getHabitaciones().size());
+		for (int i = 0; i < reserva.getHabitaciones().size(); i++) {
+			habitaciones.set(i, reserva.getHabitaciones().get(i).getId());
+		}
+		
+		table.setValueAt(habitaciones, 0, 9);
+		
+		
+		servicios = new ArrayList<Integer>(reserva.getServicios().size());
+		for (int i = 0; i < reserva.getServicios().size(); i++) {
+			servicios.set(i, reserva.getServicios().get(i).getId_Servicio());
+		}
+		
+		table.setValueAt(servicios, 0, 10);
+		
+		JScrollPane scroll = new JScrollPane(table);
+		main.add(scroll);
+		//CANCEL BUTTON
+		JButton cancelButton= new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						setVisible(false);
+						Controller.obtenerInstancia().accion(Events.ABRIR_VRESERVA, null);
+								
+					}
+				});
+		main.add(cancelButton);
+		pack();
+		setLocationRelativeTo(getParent());
+		setVisible(true);
+	}
+}

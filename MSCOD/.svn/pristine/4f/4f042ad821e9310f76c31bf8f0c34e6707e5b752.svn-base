@@ -1,0 +1,75 @@
+package Presentacion.Reserva;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import Negocio.Reserva.TReserva;
+import Negocio.Reserva.TReservaCompleta;
+import Presentacion.Controller.Controller;
+import Presentacion.Controller.Events;
+import Presentacion.Controller.IGUI;
+
+public class VMostrarReserva_OK extends JFrame implements IGUI {
+JPanel main;
+	
+	public VMostrarReserva_OK(){
+		main = new JPanel();
+		this.setContentPane(main);
+	}
+	@Override
+	public void update(Object data) {
+		TReservaCompleta reserva = (TReservaCompleta)data;
+		String[] columnNames = {"ID", "Codigo", "NumDias", "ID Cliente", "ID Recepcionista", "NumHabitaciones", "FechaIni", "Activo"};
+		JTable table = new JTable();
+		
+		table.setModel(new DefaultTableModel() {
+			public boolean isCellEditable(int row, int col) {
+				return false;
+			}
+
+			public String getColumnName(int index) {
+				return columnNames[index];
+			}
+
+			public int getColumnCount() {
+				return 8;
+			}
+
+			public int getRowCount() {
+				return 1;
+			}
+		});
+		
+		table.setValueAt(reserva.getReserva().getId(), 0, 0);
+		table.setValueAt(reserva.getReserva().getCodigo(), 0, 1);
+		table.setValueAt(reserva.getReserva().getNumDias(), 0, 2);
+		table.setValueAt(reserva.getReserva().getId_Cliente(), 0, 3);
+		table.setValueAt(reserva.getReserva().getId_Recepcionista(), 0, 4);
+		table.setValueAt(reserva.getReserva().getNum_Habitaciones(), 0, 5);
+		table.setValueAt(reserva.getReserva().getFechaInicio(), 0, 6);
+		table.setValueAt(reserva.getReserva().getActivo() ? "SI" : "NO", 0, 7);
+		
+		JScrollPane scroll = new JScrollPane(table);
+		main.add(scroll);
+		//CANCEL BUTTON
+		JButton cancelButton= new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						setVisible(false);
+						Controller.obtenerInstancia().accion(Events.ABRIR_VRESERVA, null);
+								
+					}
+				});
+		main.add(cancelButton);
+		pack();
+		setLocationRelativeTo(getParent());
+		setVisible(true);
+	}
+}

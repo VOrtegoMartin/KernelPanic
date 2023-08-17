@@ -1,0 +1,98 @@
+package Negocio.Cliente;
+
+import static org.junit.Assert.*;
+
+import java.sql.Connection;
+import java.sql.Statement;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import Integracion.Almacendeldominio.Transaction;
+import Integracion.Almacendeldominio.TransactionManager;
+import Negocio.FactoriaNegocio.FactoriaSA;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class TestSACliente {
+	
+	static SACliente saCli;
+	static int id;
+
+	@BeforeClass
+	public static void BeforeClass() {
+		Transaction t = TransactionManager.getInstance().newTransaction();
+		t.start();
+		saCli = FactoriaSA.getInstance().generarSACliente();
+		
+		try {
+			Connection connection = (Connection) t.getResource();
+			Statement s = connection.createStatement();
+			s.executeUpdate("DELETE FROM supermercado.cliente WHERE nombre LIKE 'SACLI';");			
+			t.commit();
+		}
+		catch(Exception e) {
+			t.rollback();
+			e.printStackTrace();
+		}
+		id = saCli.crearCliente(new TCliente(id, true, "SACLI", "email1"));
+	}
+	
+	@After
+	public void reactivaClientePruebas() {
+		saCli.crearCliente(new TCliente(id, true, "SACLI", "email1"));
+	}
+	
+	@Test
+	public void aTestMuestraClienteCorrecto() {
+		TCliente cli = saCli.buscarUnCliente(id);
+		
+		assertEquals(id, (int)cli.getID());
+		assertTrue(cli.getActivo());
+	}
+	
+	@Test
+	public void btestCrearClienteExistente() {
+		TCliente cli = new TCliente(12, true, "cliente1Test", "email1test");	
+		
+		assertEquals(-1, (int) saCli.crearCliente(cli));
+	}
+	
+	@Test
+    public void ctestEliminaActivo() {
+	     assertNotEquals(-1, (int)saCli.eliminarCliente(id));
+	     assertEquals(-1, (int)saCli.eliminarCliente(id));
+    }
+	
+	@Test
+    public void dTestEliminarIncorrecto() {
+        assertEquals(-1, (int)saCli.eliminarCliente(-1));
+    }
+	
+	@Test
+	public void eTestModificarCorrecto() {
+		int res = saCli.editarCliente(new TCliente(id, true, "SACLI2", "email2test"));
+		assertNotEquals(-1, res);
+		assertEquals("SACLI2", saCli.buscarUnCliente(id).getNombre());
+	}
+	
+	@AfterClass
+	public static void AfterClass() {
+		try {
+		TransactionManager tManager = TransactionManager.getInstance();
+		Transaction t = tManager.newTransaction();
+		t.start();
+		Connection connection = (Connection) t.getResource();
+		Statement s = connection.createStatement();
+		s.executeUpdate("DELETE FROM supermercado.cliente WHERE idCliente = " + id + ";");
+		t.commit();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
